@@ -1,0 +1,190 @@
+STORED VALUES
+
+int UserID
+time WDAMTime
+time WDPMTime
+time WEAMTime
+time WEPMTime
+String[] SessionIDs // UserID-ISODATE-[AM|PM]
+int[] Moods // must be linked to SessionID somehow to allow graphing
+Audio[] questions
+Audio[] answers
+String[] question_texts
+bool sick
+bool elsewhere
+int mood
+String comments
+json RecordingMetaData
+  ->bool sick
+  ->bool elsewhre
+  ->int Mood
+  ->String comments
+
+
+TEMPLATES
+
+MainMenu
+  button begin_new_recording
+    launches recording(recording_ID) interaction
+  text(time NextRecording)
+    check current time and weekend/weekday, display
+    "Next recording at hh:mm"
+  button analytics
+    launches analytics template
+  button settings
+    launches settings template
+
+Analytics(String[] SessionIDs, int[] Moods, int n)
+  text analytics_introduction
+    //for when displayed at end of RECORDING_INTERACTION
+    if (n>0) "Thanks for completing your nth recording, below are some analytics from the survey so far"
+    //for when accessed from MainMenu
+    in (n==0) "Below are some analytics from the survey so far"
+  graph mood_graph(int[] Moods)
+    display graph of moods
+  calendar completion_calendar(String[] SessionIDs)
+    display calendar of completed recordings
+
+
+Settings(bool firstrun)
+  //does not show if (bool firstrun == false)
+  text settings_introduction
+    if (firstrun == true)
+      "Welcome to LVAP! Before we continue, this app will remind you to make two recordings per day. Please select times that work for you."
+    if (firstrun == false)
+      "Here you can change your scheduled recording reminders."
+  header weekdays
+    timeinput WDAM
+    timeinput WDPM
+  header weekends
+    timeinput WDAM
+    timeinput WDPM
+
+button continue
+if (firstrun == true)
+  button is round and says "GO!"
+  stores WDAM, WDPM, WEAM, WEPM to WDAMTime, WDPMTime, WEAMTime, WEPMTime
+  launch MainMenu
+else
+  button is rect and says "Back to main menu"
+  stores WDAM, WDPM, WEAM, WEPM to WDAMTime, WDPMTime, WEAMTime, WEPMTime
+
+Login
+//does not show if (bool firstrun == false)
+text login_introduction
+  "Thanks for taking part in this survey. As you know, your voice data will eventually help keep astronauts safe on deep space missions. To begin, please enter the subject ID you were emailed along with your install link:"
+idinput IDfield
+button GO
+  stores IDfield to UserID
+  launch settings
+
+PreRecording
+text PreRecording_intro
+  "Before we begin, would you mind letting us know a few things?"
+text PreRecording_q1
+  "Are you elsewhere than usual for this recording?"
+checkboxinput sick_yes //must toggle to empty if sick_no
+checkboxinput sick_no //must toggle to empty if sick_yes
+text PreRecording_q1
+  "Are you feeling sick in any way (incl. cold & sore throat)"
+checkboxinput elsewhere_yes //must toggle to empty if elsewhere_yes
+checkboxinput elsewhere_no //must toggle to empty if elsewhere_yes
+button GO
+  stores sick_yes, sick_no, elsewhere_yes, elsewhere_no to in RecordingMetaData
+  launches RECORDING_INTERACTION
+
+Countdown
+text countdown_text
+  "PLEASE PUT THE PHONE TO YOUR EAR. LISTEN TO THE QUESTIONS AND SPEAK YOUR ANSWERS."
+animation
+  3-2-1 countdown (based on "SMPTE Universal Leader")
+launches Question(1)
+
+Question(int q, bool playback, bool rerecord, bool reviewing, recording rec_q)
+audio questions[q]
+  if(playback!=false && rerecord==false)
+    plays when light sensor indicates phone to ear
+audiorecorder aud_rec
+  using cordova plugin, generate new recording object
+  samples when light sensor indicates phone to ear // client can chop off silence in batches, no need to do it on phone
+navigatorbar nav(q)
+  displays location based on question number
+header question_number_header
+  "Question "+q+":"
+text question_text
+  question_texts[q]
+audioindicator rec_ind(bool playback, aud_rec.rectime, aud_rec.playtime)
+  if (playback == false)
+    "Recording - "aud_rec.rectime" sec"
+  else
+    "Replaying - "rec_q.playtime" sec"
+button rerecord //rerecord icon
+  aud_rec.dispose()
+  launch ReRecordWarning(int q)
+button replay // replay icon
+  aud_rec.stop()
+  aud_rec.save("rec_"+q)
+  launch Question(q, true, rec_q)
+if (reviewing != true)
+  button next // right arrow icon
+    aud_rec.stop()
+    aud_rec.saveas("rec_"+q)
+    if (q=max)
+      launch Question(q+1, false, null)
+    else
+      launch FinalQuestion()
+else
+  button ok //tick mark icon
+  launches ReviewPage()
+
+RecRecordWarning(int q)
+  header ReRecordWarning_intro
+    "RE-RECORDING QUESTION PUT PHONE TO EAR AND SPEAK ANSWER AGAIN"
+  animation ReRecordAnimation
+    Gif of putting phone to ear
+  if (lightsensor==false)
+    launch Question (q, false, true, null)
+
+FinalQuestion
+  header FinalQuestion_header
+    "Thanks for recording today!"
+  text ask_for_mood
+    "Before we finish the questions, would you please rate your mood:"
+  sliderinput mood_slider
+    //integer left right slider
+  text ask_for_comments
+    "And leave any other notes you have about your health and wellbeing:"
+  textinput comments_input
+    //editable text field
+  button review_and_finalise
+    stores mood_slider, comments_input in RecordingMetaData
+    launches ReviewPage
+
+  ReviewPage
+    header ReviewPage_introduction
+      "Feel free to review  and re-record any recordings, otherwise just hit “FINALISE”."
+    button[] question_buttons
+      launches Question(q, true, false, rec_q)
+    button upload
+      launches alert "Will upload when next to wifi"
+      names rec_q...rec_qmax with SessionID+q // becomes
+      uploads rec_q...rec_qmax via PlayAPI"http://../UploadBatch"
+      stores UserID, SessionID in RecordingMetaData
+      uploads RecordingMetaData via PlayAPI"http://../MetaDataUpload"
+      launches Analytics(n)
+
+Database Schema:
+  CREATE TABLE "Recordings" {UserID, SessionID, !!RecordingIDq, Date, AM|PM, questionnumber}
+  CREATE TABLE "Metadata" {UserID, !!SessionID, sick, elsewhere, mood, comments}
+
+Database Functions:
+  //UploadBatch
+    Open fttp stream
+    for (files in stream)
+      save to root
+    for (files in root)
+      INSERT INTO Recordings {file, parse filename}
+
+  //MetaDataUpload
+    json parse
+    INSERT INTO Recordings {UserID, SessionID, sick, elsewhere, mood, comments}

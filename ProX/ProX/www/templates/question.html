@@ -1,0 +1,13 @@
+﻿<ion-view title="Q1">
+    <ion-content padding="'true'" style="background: url(img/background.jpg) no-repeat center;">
+        <div><h1>{{question_data.Q_Nav}}</h1></div>
+        <div><h2>{{question_data.Q_Text}}</h2></div>
+        <div><h2>{{flavour_text}}</h2></div>
+  
+        <div class="button-bar">
+            <button class="button button-stable button-outline button-block  icon ion-ios-recording-outline"></button>
+            <button class="button button-stable button-outline button-block  icon ion-android-arrow-dropright-circle" ng-click="replay();"></button>
+            <button class="button button-stable button-outline button-block  icon ion-arrow-right-a" ng-click="advance();"></button>
+        </div>
+    </ion-content>
+</ion-view>

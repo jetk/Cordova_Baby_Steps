@@ -1,0 +1,22 @@
+{
+    "org.apache.cordova.media": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.media@0.2.16"
+        }
+    },
+    "org.apache.cordova.file": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.file"
+        }
+    },
+    "cordova-plugin-media": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-media"
+        },
+        "is_top_level": true,
+        "variables": {}
+    }
+}

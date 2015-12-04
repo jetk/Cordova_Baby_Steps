@@ -13,9 +13,17 @@
             </tr>
             </table>
             <h4>Are you elsewhere than usual for this recording?</h4>
-            <ion-checkbox name="Other_Loc_Yes">Yes</ion-checkbox>
-            <ion-checkbox name="Other_Loc_No">No</ion-checkbox>
-            <button class="button button-stable button-block button-full">GO</button>
+            <table style="width:100%">
+                <tr>
+                    <td>
+                        <ion-checkbox ng-model="Other_Loc_Yes" ng-click="toggle()" name="Other_Loc_Yes">Yes</ion-checkbox>
+                    </td>
+                    <td>
+                        <ion-checkbox ng-model="Other_Loc_No" ng-click="toggle()" name="Other_Loc_No">No</ion-checkbox>
+                </tr>
+            </table>
+
+            <button class="button button-stable button-block button-full" ng-click="begin()">GO</button>
         </form>
     </ion-content>
 </ion-view>

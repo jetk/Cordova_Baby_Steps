@@ -22,4 +22,9 @@
     <preference name="SplashScreen" value="screen" />
     <preference name="windows-target-version" value="8.1" />
     <preference name="windows-phone-target-version" value="8.1" />
+    <preference name="KeepRunning" value="True" />
+    <preference name="ShowTitle" value="True" />
+    <preference name="InAppBrowserStorageEnabled" value="True" />
+    <preference name="SuppressesIncrementalRendering" value="True" />
+    <vs:plugin name="org.apache.cordova.media" version="0.2.16" />
 </widget>

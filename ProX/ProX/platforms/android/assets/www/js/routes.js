@@ -33,9 +33,33 @@ angular.module('app.routes', [])
         templateUrl: 'templates/prerecord.html',
         controller: 'prerecordCtrl'
     })
+
+    .state('question', {
+        url: '/question',
+        templateUrl: 'templates/question.html',
+        controller: 'questionCtrl'
+    })
+
+    .state('non_audio', {
+        url: '/non_audio',
+        templateUrl: 'templates/non_audio.html',
+        controller: 'non_audioCtrl'
+    })
+
+  .state('review', {
+      url: '/review',
+      templateUrl: 'templates/review.html',
+      controller: 'reviewCtrl'
+  })
+
+ .state('analytics', {
+     url: '/analytics',
+     templateUrl: 'templates/analytics.html',
+     controller: 'analyticsCtrl'
+ })
     ;
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/login');
+  $urlRouterProvider.otherwise('/main');
 
 });

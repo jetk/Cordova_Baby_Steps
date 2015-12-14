@@ -1,0 +1,15 @@
+﻿<ion-view title="Q1">
+    <ion-content padding="'true'" style="background: url(img/background.jpg) no-repeat center;">
+        <div><h1>{{question_data.Q_Nav}}</h1></div>
+        <div><h2>{{question_data.Q_Text}}</h2></div>
+        <div><h2>{{flavour_text}} question: {{q}}</h2></div>
+         
+        <audio autoplay><source src="questions/q1.mp3" type="audio/mp3"></audio>  
+        
+        <div class="button-bar">
+            <button class="button button-stable button-outline button-block  icon ion-ios-recording-outline" ng-click="rerecord()"></button>
+            <button class="button button-stable button-outline button-block  icon ion-android-arrow-dropright-circle" ng-click="replay();"></button>
+            <button class="button button-stable button-outline button-block  icon ion-arrow-right-a" ng-click="advance();"></button>
+        </div>
+    </ion-content>
+</ion-view>

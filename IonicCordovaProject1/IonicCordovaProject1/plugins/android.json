@@ -1,0 +1,30 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {
+            "res/xml/config.xml": {
+                "parents": {
+                    "/*": []
+                }
+            },
+            "AndroidManifest.xml": {
+                "parents": {
+                    "/*": []
+                }
+            }
+        }
+    },
+    "installed_plugins": {
+        "cordova-plugin-media": {
+            "PACKAGE_NAME": "io.cordova.myappe2785d518e9f4f6ea03055878dd7a400"
+        }
+    },
+    "dependent_plugins": {
+        "cordova-plugin-file": {
+            "PACKAGE_NAME": "io.cordova.myappe2785d518e9f4f6ea03055878dd7a400"
+        }
+    }
+}

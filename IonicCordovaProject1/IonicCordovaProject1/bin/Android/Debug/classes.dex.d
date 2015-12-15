@@ -1,4 +1,9 @@
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes.dex : \
+C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\com\emj365\plugins\AudioRecorderAPI$1.class \
+C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\com\emj365\plugins\AudioRecorderAPI$2.class \
+C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\com\emj365\plugins\AudioRecorderAPI$3.class \
+C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\com\emj365\plugins\AudioRecorderAPI$4.class \
+C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\com\emj365\plugins\AudioRecorderAPI.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\io\cordova\myappe2785d518e9f4f6ea03055878dd7a400\BuildConfig.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\io\cordova\myappe2785d518e9f4f6ea03055878dd7a400\MainActivity.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\io\cordova\myappe2785d518e9f4f6ea03055878dd7a400\R$attr.class \
@@ -6,6 +11,7 @@ C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCor
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\io\cordova\myappe2785d518e9f4f6ea03055878dd7a400\R$string.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\io\cordova\myappe2785d518e9f4f6ea03055878dd7a400\R$xml.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\io\cordova\myappe2785d518e9f4f6ea03055878dd7a400\R.class \
+C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\org\apache\cordova\file\AssetFilesystem.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\org\apache\cordova\file\ContentFilesystem.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\org\apache\cordova\file\DirectoryManager.class \
 C:\Users\Jan\Documents\Visual Studio 2015\Projects\IonicCordovaProject1\IonicCordovaProject1\platforms\android\ant-build\classes\org\apache\cordova\file\EncodingException.class \

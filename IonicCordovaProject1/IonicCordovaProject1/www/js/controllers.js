@@ -22,7 +22,6 @@ angular.module('app.controllers', [])
 
     $scope.Play = function (src) {
         if (media == null) {
-            alert("initialising")
             media = $cordovaMedia.newMedia(src, null, null, mediaStatusCallback);
         }
         media.play();
@@ -42,6 +41,39 @@ angular.module('app.controllers', [])
         } else {
             $ionicLoading.hide();
         }
+    }
+
+
+   
+    $scope.stop = function () {
+
+    }
+    $scope.playback = function () {
+
+    }
+
+    $scope.record = function() {
+        var src = "myrecording.mp3";
+        var mediaRec = new Media(src,
+            // success callback
+            function () {
+                console.log("recordAudio():Audio Success");
+            },
+
+            // error callback
+            function (err) {
+                console.log("recordAudio():Audio Error: " + err.code);
+            }
+        );
+
+        // Record audio
+        mediaRec.startRecord();
+
+        // Stop recording after 10 seconds
+        setTimeout(function () {
+            mediaRec.stopRecord()
+            mediaRec.play();
+        }, 10000);
     }
 })
 
@@ -110,8 +142,10 @@ angular.module('app.controllers', [])
         $scope.flavour_text = $scope.return_flavour_text(record, replay, rerecord);
     });
 
+
+
     
- 
+       
     /*
     $rootScope.initialise = function () {
         alert("init");
@@ -203,7 +237,7 @@ angular.module('app.controllers', [])
     }
 })
 
-.controller('alphaCtrl', function ($scope, $state, $stateParams, $http, $ionicLoading, $timeout, LoadData) {
+.controller('alphaCtrl', function ($scope, $state, $stateParams, $http, $ionicLoading, $cordovaMedia, $timeout, LoadData) {
 
 
     /*
@@ -239,31 +273,12 @@ angular.module('app.controllers', [])
         showDelay: 0,
         duration: 1800
     });
+    
 
-    /*
-    // Decide whether to use this to then kickstart recording
-    $timeout(function () {
-        $ionicLoading.hide();
-    }, 1700);
-    */
 
     $scope.testvar = $stateParams.testvar;
     $scope.flavour_text = $stateParams.mode;
-
-    /*
-    var questions = LoadData.getqd();
-    alert(questions.length)
-    $scope.qd = questions[$stateParams.testvar];
-    var number_of_questions = $scope.questions.length - 1;
-    var bca = new Array();
-    for (i = 0 ; i < number_of_questions ; i++) {
-        if (i < $stateParams.testvar)
-            bca[i] = true;
-        else
-            bca[i] = false;
-    }
-    $scope.BreadCrumbArray = bca;
-    */
+    var media;
 
      
     //Note: asynchronous call, forces me to wrap everything up here
@@ -281,6 +296,17 @@ angular.module('app.controllers', [])
         }
 
         $scope.BreadCrumbArray = bca;
+
+        var src = "questions/"+$scope.qd.Q_Audio
+
+        // Decide whether to use this to then kickstart recording
+        $timeout(function () {
+
+            media = $cordovaMedia.newMedia(src, null, null, null)
+            media.play();
+
+
+        }, 1700);
     })  
    
     
@@ -296,6 +322,7 @@ angular.module('app.controllers', [])
         {
             //TODO: save recording
             //TODO: pipe filepath to service
+            media.stop();
             $state.go('alpha', { testvar: $stateParams.testvar + 1, mode: "Recording", filepath: null })
         }
         else

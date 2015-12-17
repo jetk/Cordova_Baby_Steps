@@ -1,0 +1,15 @@
+﻿<ion-view title="Analytics">
+    <ion-content padding="'true'" style="background: url(img/background.jpg) no-repeat center;" class="has-header">
+        <button class="button button-stable button-outline button-block" ng-click="record()">RECORD!</button>
+        <button class="button button-stable button-outline button-block" ng-click="stop()">STOP!</button>
+        <button class="button button-stable button-outline button-block" ng-click="playback()">PLAYBACK!</button>
+        
+		
+		<button class="button button-stable button-outline button-block" ng-click="showSCB()">showSCB!</button>
+		<button class="button button-stable button-outline button-block" ng-click="toggleSCB()">toggleSCB!</button>
+		
+		<button class="button" ng-click="play('q1.mp3')">Play from device</button>
+        
+        <button class="button" ng-click="Play('http://www.stephaniequinn.com/Music/Commercial%20DEMO%20-%2013.mp3')">Play from internet</button>
+    </ion-content>
+</ion-view>

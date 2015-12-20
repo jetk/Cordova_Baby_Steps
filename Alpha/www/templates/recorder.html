@@ -5,11 +5,20 @@
         <button class="button button-stable button-outline button-block" ng-click="playback()">PLAYBACK!</button>
         
 		
-		<button class="button button-stable button-outline button-block" ng-click="showSCB()">showSCB!</button>
-		<button class="button button-stable button-outline button-block" ng-click="toggleSCB()">toggleSCB!</button>
 		
-		<button class="button" ng-click="play('q1.mp3')">Play from device</button>
-        
-        <button class="button" ng-click="Play('http://www.stephaniequinn.com/Music/Commercial%20DEMO%20-%2013.mp3')">Play from internet</button>
+		<label class="item item-input">
+		<span class="input-label">Filename</span>
+                <input type="text" ng-model="foo.filename">
+		</label>
+		<label class="item item-input">
+		<span class="input-label">Number</span>
+				<input type="tel" ng-model="foo.number">
+		</label>
+		
+		<button class="button button-block" ng-click="start()">create</button>
+		<button class="button button-block" ng-click="show()"=>display</button>
+		<button class="button button-block" ng-click="save()">save</button>
+      
+
     </ion-content>
 </ion-view>

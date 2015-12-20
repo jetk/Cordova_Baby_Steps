@@ -14,7 +14,7 @@ angular.module('app.controllers', [])
     }
 })
 
-.controller('recorderCtrl', function ($scope, $state, $cordovaMedia, $ionicLoading, $cordovaFile, SCB) {
+.controller('recorderCtrl', function ($scope, $state, $cordovaMedia, $ionicLoading, $cordovaFile, SCB, $localstorage) {
 
   $scope.play = function(src) {
 		var fullpath = "/android_asset/www/"+src;
@@ -27,7 +27,7 @@ angular.module('app.controllers', [])
         alert(JSON.stringify(e))
     }
 	
-	var filename = "gamma.wav"
+	var filename = "Android/data/com.ionicframework.alpha540629/files/echo.wav"
 	var recordedmedia = new Media(filename);
 	
 	$scope.record = function()
@@ -45,22 +45,47 @@ angular.module('app.controllers', [])
 	$scope.playback = function()
 	{
 		var playback = new Media (filename)
-		media.play();
+		playback.play();
 	}
 	
-	$scope.showSCB = function ()
+	$scope.start = function()
 	{
-		$scope.SCB=SCB.getSCB();
-		alert("the value of SCB is:"+$scope.SCB);
+		$localstorage.setObject('Alpha',{key:'BETA'})
 	}
 	
-	$scope.toggleSCB = function ()
+	$scope.show = function ()
 	{
-		$scope.temp = SCB.getSCB();
-		if ($scope.temp == true)
-			SCB.setSCB(false);
-		else if ($scope.temp == false)
-			SCB.setSCB(true);
+		$scope.b = $localstorage.getObject('Alpha');
+		alert($scope.b.key);
+	}
+	
+	$scope.save = function ()
+	{
+
+	/*
+	$cordovaFile.createFile("Android/data/com.ionicframework.alpha540629/files/", "file.txt")
+    .then(function (success) {
+        alert('SUCCESS1: ' + JSON.stringify(success));
+    }, function (error) {
+        alert('ERROR1: ' + JSON.stringify(error));
+    });
+	
+	$cordovaFile.writeExistingFile("Android/data/com.ionicframework.alpha540629/files/", "file.txt", "the text inside the file")
+    .then(function (success) {
+        alert('SUCCESS2: ' + JSON.stringify(success));
+    }, function (error) {
+        alert('ERROR2: ' + JSON.stringify(error));
+    });
+	*/
+	
+	
+	$cordovaFile.writeFile(cordova.file.dataDirectory, "file.txt", "the text inside the file", true)
+    .then(function (success) {
+        alert(cordova.file.dataDirectory);
+		alert('SUCCESS3: ' + JSON.stringify(success));
+    }, function (error) {
+        alert('ERROR3: ' + JSON.stringify(error));
+    });
 	}
 })
 
@@ -78,20 +103,19 @@ angular.module('app.controllers', [])
         alert($localstorage.get('WDAM')+$localstorage.get('WDPM'))
     }
     $scope.save = function () {
-        alert($scope.settings.WDAM)
         $localstorage.set('WDAM', $scope.settings.WDAM)
-        $localstorage.set('WDPM', $scope.settings.WDPM)
+		$localstorage.set('WDPM', $scope.settings.WDPM)
         $localstorage.set('WEAM', $scope.settings.WEAM)
         $localstorage.set('WEPM', $scope.settings.WEPM)
     }
 })
 
-.controller('prerecordCtrl', function ($scope, $location, $rootScope, SharedData, $state, $ionicLoading, $timeout)   {
+.controller('prerecordCtrl', function ($scope, $location, $rootScope, SharedData, $state, $ionicLoading, $timeout, SCB, $localstorage)   {
 
     $scope.begin = function () {
         
 		//Start unique name generator service
-		
+		SCB.setSCB(false);
         $ionicLoading.show({
             template: '<html><body><h1>Getting ready to record! Please put phone to ear and answer the questions you hear</h1><div><img src="img/countdown.gif" /></div></body></html>',
             animation: 'fade-in',
@@ -103,7 +127,7 @@ angular.module('app.controllers', [])
             $ionicLoading.hide();
             $state.go('alpha', { testvar: 1, mode: "Recording", filepath: null });
         }, 1850);
-
+		$localstorage.setObject('recording_names',{q1:null, q2:"a", q3:null, q4:null, q5:null, q6:null})		
     }
 
 })
@@ -185,11 +209,11 @@ angular.module('app.controllers', [])
     }
 })
 
-
-.controller('non_audioCtrl', function ($scope, $state) {
+.controller('non_audioCtrl', function ($scope, $state, SCB) {
     
     $scope.data = {};
     $scope.data.numberSelection = 5;
+	SCB.setSCB(false);
   
     $scope.reviewandfinalise = function () {
         alert($scope.data.numberSelection + " " + $scope.data.comments);
@@ -198,12 +222,13 @@ angular.module('app.controllers', [])
 
 })
 
-.controller('reviewCtrl', function ($scope, $location, $http, $state) {
+.controller('reviewCtrl', function ($scope, $location, $http, $state, SCB) {
 
     $http.get('js/qdata.json').success(function (data) {
         $scope.quests = data;
     });
 
+	SCB.setSCB(true);
     //TODO: pull recording number from 
 
     $scope.reviewquestions = function (q) {
@@ -213,7 +238,6 @@ angular.module('app.controllers', [])
     $scope.analytics = function () {
         alert("Saving for upload on Wi-Fi")
         $state.go('analytics')
-		//TODO: SCB.set(true);
     }
 
 })
@@ -224,26 +248,36 @@ angular.module('app.controllers', [])
     }
 })
 
-//PIPE IN SCB Service
-.controller('alphaCtrl', function ($scope, $state, $stateParams, $http, $ionicLoading, $cordovaMedia, $timeout, $ionicPlatform, $cordovaFile, LoadData) {
+.controller('alphaCtrl', function ($scope, $state, $stateParams, $http, $ionicLoading, $cordovaMedia, $timeout, $ionicPlatform, $cordovaFile, SCB, LoadData,  $localstorage) {
 
 	//initialisations. Pulling q# and mode out of the state
 	$scope.testvar = $stateParams.testvar;
     $scope.flavour_text = $stateParams.mode;
+	$scope.rec_names = $localstorage.getObject('recording_names')
+	
+	
+	var rec_filepath = "Android/data/com.ionicframework.alpha540629/files/unique_q"+$scope.testvar+".wav"
+	var recorder
+	
+	
+	//TODO: generate a filename via the service
+	//TODO: put filename into an array
 	
 	//Q_Audio source and media object, probably should rename
 	var src;
 	var media;
 	var popover_sustain = 1800;
-	//TODO: Pipe in a boolean about whether or not recording is complete
-	var session_complete = false; //will be: SCB.getSCB()
+	var number_of_questions;
+	
+	//Pipes in boolean value of whether we're done with the first pass of the session
+	$scope.session_complete = SCB.getSCB();
 
 	//Loading up question data from JSON file (kept external for reconfigurability)
     //Note: asynchronous call, forces me to wrap everything up here
 	//TODO: pull out as a service 
     $http.get('js/qdata.json').success(function (data) {
         $scope.qd = data[$stateParams.testvar];
-        var number_of_questions = data.length - 1;
+        number_of_questions = data.length - 1;
         var bca = new Array();
         for (i = 0 ; i < number_of_questions ; i++) {
             if (i < $stateParams.testvar)
@@ -252,12 +286,12 @@ angular.module('app.controllers', [])
                 bca[i] = false;
         }
         $scope.BreadCrumbArray = bca;
-
         src = "questions/"+$scope.qd.Q_Audio
     })
 	
-	//Control for different modes
 	
+	//Control for different modes
+
     if ($stateParams.mode == "Recording")
     {
         //TODO: start recording
@@ -265,7 +299,6 @@ angular.module('app.controllers', [])
 		//TODO: generate filename
 		// @ service with exposed get method
 		
-        
 		
 		//Generates a popover with instructions to put the phone up to one's ear
 		$ionicLoading.show({ 
@@ -286,25 +319,28 @@ angular.module('app.controllers', [])
         alert("error")
 		}
         }, popover_sustain);
+		
+		$timeout(function () {
+        media.stop();
+		recorder = new Media(rec_filepath);
+		recorder.startRecord();
+        }, 4000);
     }
     else if ($stateParams.mode == "Replaying")
     {
-        var fullpath = "/android_asset/www/questions/saved_question.m4a";
-		alert(fullpath)
+        var fullpath = rec_filepath;
         media = new Media(fullpath, null, mediaError);
         media.play();
 		var mediaError = function(e) {
         alert("error")
 		}
-		//TODO: replay
     }
     else if ($stateParams.mode == "Re-Recording")
     {
         //TODO: start recording
         //TODO: generate filename
-        //TODO: Start phone-to-ear countdown animation
 		
-		//Generates a re-recording dpopover with instructions to put the phone up to one's ear
+		//Generates a re-recording popover with instructions to put the phone up to one's ear
 		$ionicLoading.show({ 
         template: '<html><body><h1>Re-recording question, please put the phone to your ear and speak directly</h1><ion-spinner class="ripple" icon="ripple"></ion-spinner></body></html>',
         animation: 'fade-in',
@@ -313,11 +349,15 @@ angular.module('app.controllers', [])
         showDelay: 0,
         duration: popover_sustain
 		});
+		
+		$timeout(function () {
+		recorder = new Media(rec_filepath);
+		recorder.startRecord();
+        }, popover_sustain);
     }
     else if ($stateParams.mode == "Reviewing")
     {
-         var fullpath = "/android_asset/www/questions/saved_question.m4a";
-		alert(fullpath)
+        var fullpath = rec_filepath;
         media = new Media(fullpath, null, mediaError);
         media.play();
 		var mediaError = function(e) {
@@ -332,45 +372,54 @@ angular.module('app.controllers', [])
     {
         if ($stateParams.mode == "Reviewing")
         {
-            //TODO: save recording
+			//Stop playback and go to the review page
 			if(media!=null)
 				media.stop();
             $state.go('review')
         }
-		if ($stateParams.mode == "Re-Recording" && session_complete == true)
+		else if ($stateParams.mode == "Re-Recording" && $scope.session_complete == true)
         {
-            //TODO: save recording
-			if(media!=null)
-				media.stop();
+            //TODO: save recording and go to the review page
+			if(recorder!=null)
+				recorder.stopRecord();
             $state.go('review')
         }
-        else if ($stateParams.testvar < 6)
+        else if ($stateParams.testvar < number_of_questions)
         {
-            //TODO: save recording
+            //TODO: save recording and move on to the next one
             //TODO: pipe filepath to service
-            if(media!=null)
-				media.stop();
+            if(recorder!=null)
+				recorder.stopRecord();
+			$scope.rec_names["q"+$scope.testvar] = rec_filepath;
+			$localstorage.setObject('recording_names',$scope.rec_names);
             $state.go('alpha', { testvar: $stateParams.testvar + 1, mode: "Recording", filepath: null })
         }
-        else
-			if(media!=null)
-				media.stop();
-            $state.go('non_audio');
-			session_complete = true;
+        else if ($stateParams.testvar == number_of_questions)
+		{
+			//TODO: save the recording and move on to the non-audio questions
+			
+			if(recorder!=null)
+				recorder.stopRecord();
+            $scope.rec_names["q"+$scope.testvar] = rec_filepath;
+			$localstorage.setObject('recording_names',$scope.rec_names);
+			$state.go('non_audio');			
+		}
     }
 
     $scope.rerecord = function () {
         //TODO: dump recording
-		if(media!=null)
-				media.stop();
+		if(recorder!=null)
+			recorder.stopRecord();
         $state.go('alpha', { testvar: $stateParams.testvar, mode: "Re-Recording", filepath: null })
     }
 
     $scope.replay = function () {
         //TODO: save recording
         //TODO: pipe filepath to service
-		if(media!=null)
-				media.stop();
+		if(recorder!=null)
+				recorder.stopRecord();
+		$scope.rec_names["q"+$scope.testvar] = rec_filepath;
+		$localstorage.setObject('recording_names',$scope.rec_names);
         $state.go('alpha', { testvar: $stateParams.testvar, mode: "Replaying", filepath: null })
     }
 })

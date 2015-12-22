@@ -1,17 +1,13 @@
 <ion-view title="Login">
     <ion-content padding="'true'" style="background: url(img/background.jpg) no-repeat center;" class="has-header">
-        <div>
-            <h1>Hi there, please login</h1>
-        </div>
-        <div class="spacer" style="width: 300px; height: 204px;"></div>
-        <form class="list">
-            <ion-list>
-                <label class="item item-input">
-                    <span class="input-label">Username</span>
-                    <input type="text" placeholder="">
-                </label>
-            </ion-list>
-            <a menu-close="" href="#/settings" class="button button-stable button-outline button-block button-large">Log In</a>
-        </form>
+        <div class="list list-inset">
+          <label class="item item-input">
+              <input type="text" placeholder="Username" ng-model="data.username">
+          </label>
+          <label class="item item-input">
+              <input type="password" placeholder="Password" ng-model="data.password">
+          </label>
+      </div>
+      <button class="button button-block button-calm" ng-click="login()">Login</button>
     </ion-content>
 </ion-view>

@@ -52,6 +52,31 @@ angular.module('app.services', [])
     }
 }])
 
+
+.service('LoginService', function($q) {
+    return {
+        loginUser: function(name, pw) {
+            var deferred = $q.defer();
+            var promise = deferred.promise;
+ 
+            if (name == 'alpha' && pw == 'secret') {
+                deferred.resolve('Welcome ' + name + '!');
+            } else {
+                deferred.reject('Wrong credentials.');
+            }
+            promise.success = function(fn) {
+                promise.then(fn);
+                return promise;
+            }
+            promise.error = function(fn) {
+                promise.then(null, fn);
+                return promise;
+            }
+            return promise;
+        }
+    }
+})
+
 .service('SharedData', [function () {
     var q = 0;
 
@@ -80,6 +105,7 @@ angular.module('app.services', [])
 
 }])
 
+
 .factory('$localstorage', ['$window', function($window) {
     return {
         set: function(key, value) {
@@ -93,7 +119,39 @@ angular.module('app.services', [])
         },
         getObject: function(key) {
             return JSON.parse($window.localStorage[key] || '{}');
-        }
+        },
+		setsid: function(){
+			
+			//checks the number of sessions and sets to one if running for the first time, increments otherwise
+			var temp = $window.localStorage['session_number'];
+			if (temp > 0)
+				$window.localStorage['session_number'] = ++temp
+			else
+				$window.localStorage['session_number'] = 1
+			
+			//generates an iso8601 timestamp for the SESSION, not the recording
+			
+			var today = new Date();
+			var hours = today.getHours();
+			var mins = today.getMinutes();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1;
+			var yyyy = today.getFullYear();
+			if(dd<10)
+				dd='0'+dd
+			if(mm<10)
+				mm='0'+mm
+			var isotime = yyyy+"-"+mm+"-"+dd+"-"+hours+"h"+mins+"m"
+			
+			$window.localStorage['timestamp'] = isotime
+		},
+		getsid: function() {
+			var uid = $window.localStorage['uid'];
+			var session_number = $window.localStorage['session_number']
+			var timestamp = $window.localStorage['timestamp']
+			
+			return uid+"_"+session_number+"_"+timestamp
+		}
     }
 }])
 
@@ -138,6 +196,52 @@ angular.module('app.services', [])
 .service('BlankService', [function(){
 
 }])
+
+
+.service('SessionID', [function($localstorage){
+
+var sid = null
+
+ return {
+        nextsid: function () {
+            var temp = $localstorage.get('session_number');
+			if(temp>0)
+				$localstorage.set('session_number', 1+temp);
+			else
+				$localstorage.set('session_number', 1);
+			var time =  new Date().getTime();
+			$localstorage.set('timestamp', date);
+        },
+        getsid: function () {
+            var uid = $localstorage.get('uid')
+			var session_number = $localstorage.get('session_number')
+			var timestamp = $localstorage.get('timestamp')
+			sid = uid+"_"+session_number+"_"+timestamp
+			return sid;
+        }
+    };
+}])
+
+
+//Session Name generator:
+/*
+
+'$localstorage'
+
+Session name string is: userid_session_datetime_am/pm
+
+function: Start new session
+Gets session count, increments and sets
+Gets timestamp, overwrites
+
+function: Get Session Name
+Get userid from local storage
+Get session from local storage
+Get timestamp from local storage // because otherwise you get wierd timings from re-records
+return concatenated
+
+*/
+
 
 
 .service('LoadData', [function ($http) {

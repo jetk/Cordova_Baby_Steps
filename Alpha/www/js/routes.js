@@ -52,7 +52,7 @@ angular.module('app.routes', [])
       controller: 'reviewCtrl'
   })
 
- .state('analytics', {
+.state('analytics', {
      url: '/analytics',
      templateUrl: 'templates/analytics.html',
      controller: 'analyticsCtrl'
@@ -72,6 +72,6 @@ angular.module('app.routes', [])
     ;
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/main');
+  $urlRouterProvider.otherwise('/login');
 
 });

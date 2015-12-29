@@ -1,38 +1,33 @@
 angular.module('app.controllers', [])
 
 /*
-TODO: add notifications
->clean up time settings from settings page
->install plugins
-
 >try writing files to SD card
->
-
-
+>figure out logic for locating and uploading files
 */
-
-
-
-
 
 .controller('loginCtrl', function($scope, LoginService, $ionicPopup, $state, $localstorage) {
     $scope.data = {};
  
-	if($localstorage.get('is_logged_in') == true)
-		$state.go('main')
+	if($localstorage.get('firstrun') == true)
+		$state.go('mainMenu')
 	
     $scope.login = function() {
         LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
             $state.go('settings');
 			$localstorage.set('uid', $scope.data.username);
-			$localstorage.set('is_logged_in', true);
         }).error(function(data) {
             var alertPopup = $ionicPopup.alert({
                 title: 'Login failed!',
                 template: 'Please check your credentials!'
             });
         });
-    }
+ 
+	//loads configuration data into local storage for better access
+	$http.get('js/qdata.json').success(function (data) {
+		$localstorage.setObject('question_json',data)
+		$localstorage.setObject('recording_names',data[0]['Q_Text'])
+    })
+	}
 })
    
 .controller('mainMenuCtrl', function($scope, $state, $http, $localstorage) {
@@ -42,13 +37,15 @@ TODO: add notifications
     $scope.recorder = function () {
         $state.go('recorder')
     }
+	/*
 	$http.get('js/qdata.json').success(function (data) {
 		$localstorage.setObject('question_json',data)
 		$localstorage.setObject('recording_names',data[0]['Q_Text'])
     })
+	*/
 })
 
-.controller('recorderCtrl', function ($scope, $state, $cordovaMedia, $ionicLoading, $cordovaFile, SCB, $localstorage) {
+.controller('recorderCtrl', function ($scope, $state, $cordovaMedia, $ionicLoading, $cordovaFile, SCB, $localstorage, $cordovaLocalNotification) {
 
   $scope.play = function(src) {
 		var fullpath = "/android_asset/www/"+src;
@@ -80,6 +77,34 @@ TODO: add notifications
 	{
 		var playback = new Media (filename)
 		playback.play();
+	}
+	
+	$scope.add = function() {
+        var alarmTime = new Date();
+        alarmTime.setMinutes(alarmTime.getMinutes() + 1);
+        $cordovaLocalNotification.schedule({
+            id: 1,
+            firstAt: alarmTime,
+			every: 'minute',
+            title: "This is a title",
+            text: "This is a message",
+            autoCancel: true,
+            sound: null
+        }).then(function () {
+            console.log("The notification has been set");
+        });
+    };
+	
+	
+	$scope.update = function ()
+	{
+		$cordovaLocalNotification.update({
+        id: 1,
+        title: 'Title - UPDATED',
+        text: 'Text - UPDATED'
+      }).then(function (result) {
+        // ...
+      });
 	}
 	
 	$scope.start = function()
@@ -125,24 +150,170 @@ TODO: add notifications
 })
 
 
-.controller('settingsCtrl', function ($scope, $localstorage) {
-
+.controller('settingsCtrl', function ($scope, $localstorage, $state, $cordovaLocalNotification) {
+	
+	//pulls in a firstrun boolean, used to determine whether the 'save' or 'update' buttons are visible	
+	$scope.firstrun = $localstorage.get('firstrun')
+	
     $scope.settings = {
-        WDAM: '',
-        WDPM: '',
-        WEAM: '',
-        WEPM: ''
+        WDAM: $localstorage.get('WDAM'),
+        WDPM: $localstorage.get('WDPM'),
+        //WEAM: '',
+        //WEPM: ''
     }
-
-    $scope.show = function () {
-        alert($localstorage.get('WDAM')+$localstorage.get('WDPM'))
-    }
-    $scope.save = function () {
+	
+	
+	var generate_times = function()
+	{
+		//saves to localstorage in case reminders fail
         $localstorage.set('WDAM', $scope.settings.WDAM)
 		$localstorage.set('WDPM', $scope.settings.WDPM)
+		
+		/*
         $localstorage.set('WEAM', $scope.settings.WEAM)
         $localstorage.set('WEPM', $scope.settings.WEPM)
+		*/
+		
+		var dd = new Date().getDate();
+        var mm = new Date().getMonth()+1;
+        var yy = new Date().getFullYear();
+		
+		//extracts AM reminder hour and minutes
+        var AMhh = new Date($scope.settings.WDAM).getHours();
+        var AMmm = new Date($scope.settings.WDAM).getMinutes();
+		
+		//extracts PM reminder hour and minutes
+		var PMhh = new Date($scope.settings.WDPM).getHours();
+        var PMmm = new Date($scope.settings.WDPM).getMinutes();
+		
+		//Generates correctly formatted string for closest AM reminder time and turns it into a datetime
+		var AMsource = yy + ',' + mm + ',' + dd + ' ' + AMhh + ':' + AMmm;
+		var AM_datetime = new Date(AMsource);
+		
+		//Generates correctly formatted string for closest PM reminder time and turns it into a datetime
+		var PMsource = yy + ',' + mm + ',' + dd + ' ' + PMhh + ':' + PMmm;
+		var PM_datetime = new Date(PMsource);
+		
+		
+		return {
+		"WDAM" : AM_datetime,
+		"WDPM" : PM_datetime
+		}
+	}
+	
+	
+	$scope.save = function(){
+		
+		$scope.firstrun = false
+		$localstorage.set('firstrun', $scope.firstrun)
+		
+		var datetime_object = generate_times()
+		
+		$cordovaLocalNotification.schedule({
+            id: 1,
+            firstAt: datetime_object.WDAM,
+			every: 'day',
+            title: "LVAP",
+            text: "Hi! Time for your morning recording.",
+            autoCancel: true,
+            sound: null
+        }).then(function () {
+           alert("Morning reminder set")
+        });
+		
+		$cordovaLocalNotification.schedule({
+            id: 2,
+            firstAt: datetime_object.WDPM,
+			every: 'day',
+            title: "LVAP",
+            text: "Hi! Time for your evening recording.",
+            autoCancel: true,
+            sound: null
+        }).then(function () {
+           alert("Evening reminder set")
+        });
+		
+		$state.go('mainMenu');
+	}
+	
+	
+	
+	//TODO:DELETE
+    $scope.saveBACKUP = function () {
+		//saves to localstorage in case reminders fail
+        $localstorage.set('WDAM', $scope.settings.WDAM)
+		$localstorage.set('WDPM', $scope.settings.WDPM)
+		
+		/*
+        $localstorage.set('WEAM', $scope.settings.WEAM)
+        $localstorage.set('WEPM', $scope.settings.WEPM)
+		*/
+		
+		$localstorage.set('firstrun', false)
+		
+		
+		//generates a date seed to combine with input time to match the format local notifications require
+		var dd = new Date().getDate();
+        var mm = new Date().getMonth()+1;
+        var yy = new Date().getFullYear();
+		
+		//extracts AM reminder hour and minutes
+        var AMhh = new Date($scope.settings.WDAM).getHours();
+        var AMmm = new Date($scope.settings.WDAM).getMinutes();
+		
+		//extracts PM reminder hour and minutes
+		var PMhh = new Date($scope.settings.WDPM).getHours();
+        var PMmm = new Date($scope.settings.WDPM).getMinutes();
+		
+		//Generates correctly formatted string for closest AM reminder time and turns it into a datetime
+		var AMsource = yy + ',' + mm + ',' + dd + ' ' + AMhh + ':' + AMmm;
+		var AM_datetime = new Date(AMsource);
+		
+		//Generates correctly formatted string for closest PM reminder time and turns it into a datetime
+		var PMsource = yy + ',' + mm + ',' + dd + ' ' + PMhh + ':' + PMmm;
+		var PM_datetime = new Date(PMsource);
+
+		//Sets up a reminder to repeat daily at the morning time
+        $cordovaLocalNotification.schedule({
+            id: 1,
+            firstAt: AM_datetime,
+			every: 'day',
+            title: "LVAP",
+            text: "Hi! Time for your morning recording.",
+            autoCancel: true,
+            sound: null
+        }).then(function () {
+           alert("Morning reminder set")
+        });
+		
+		//Sets up a reminder to repeat daily at the evening time
+		$cordovaLocalNotification.schedule({
+            id: 2,
+            firstAt: PM_datetime,
+			every: 'day',
+            title: "LVAP",
+            text: "Hi! Time for your evening recording.",
+            autoCancel: true,
+            sound: null
+        }).then(function () {
+           alert("Evening reminder set")
+        });
+		
+		$state.go('mainMenu');
     }
+	
+	$scope.update = function () {
+
+		$cordovaLocalNotification.cancelAll()
+		
+		$scope.save();
+		
+		//$state.go('mainMenu');
+    }
+	
+	$scope.cancel_update = function () {
+		$state.go('mainMenu');
+	}
 })
 
 .controller('prerecordCtrl', function ($scope, $location, $rootScope, SharedData, $state, $ionicLoading, $timeout, SCB, $localstorage)   {
@@ -424,9 +595,6 @@ TODO: add notifications
         alert("error")
 		}
     }
-
-   
-    
 
     $scope.advance = function ()
     {

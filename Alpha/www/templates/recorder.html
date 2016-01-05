@@ -1,4 +1,4 @@
-﻿<ion-view title="Analytics">
+<ion-view title="Analytics">
     <ion-content padding="'true'" style="background: url(img/background.jpg) no-repeat center;" class="has-header">
         <button class="button button-stable button-outline button-block" ng-click="record()">RECORD!</button>
         <button class="button button-stable button-outline button-block" ng-click="stop()">STOP!</button>
@@ -17,7 +17,10 @@
 		
 		<button class="button button-block" ng-click="start()">start</button>
 		<button class="button button-block" ng-click="update()"=>update notification</button>
-		<button class="button button-block" ng-click="add()">add notification</button>
+		<button class="button button-block" ng-click="save()">add notification</button>
+        
+        <button class="button button-block" ng-click="delete()">Delete 1</button>
+		<button class="button button-block" ng-click="deleteRecursive()"=>Delete All</button>
       
 
     </ion-content>

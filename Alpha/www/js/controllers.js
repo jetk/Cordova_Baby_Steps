@@ -6,6 +6,7 @@ angular.module('app.controllers', [])
 
 .controller('loginCtrl', function($scope, LoginService, $ionicPopup, $state, $localstorage) {
     $scope.data = {};
+    var metadata_filenames = new Array;
  
 	if($localstorage.get('firstrun') == false)
 		$state.go('mainMenu')
@@ -14,6 +15,7 @@ angular.module('app.controllers', [])
         LoginService.loginUser($scope.data.username, $scope.data.password).success(function(data) {
             $state.go('settings');
 			$localstorage.set('uid', $scope.data.username);
+            $localstorage.setArray('metadata_filenames', metadata_filenames)
         }).error(function(data) {
             var alertPopup = $ionicPopup.alert({
                 title: 'Login failed!',
@@ -24,26 +26,63 @@ angular.module('app.controllers', [])
 	}
 })
    
-.controller('mainMenuCtrl', function($scope, $state, $http, $localstorage) {
+.controller('mainMenuCtrl', function($scope, $state, $http, $localstorage, $rootScope, $cordovaNetwork, $cordovaFile) {
     $scope.alpha = function(){
         $state.go('prerecord')
     }
     $scope.recorder = function () {
         $state.go('recorder')
     }
-
-    if ($localstorage.getObject('recording_names'==undefined))
-        {   
-	$http.get('js/qdata.json').success(function (data) {
-		$localstorage.setObject('question_json',data)
-		$localstorage.setObject('recording_names',data[0]['Q_Text'])
-    })
-    alert("Data Initialised")
+    
+    
+    
+    
+    // Listens for whether the device is online (directely from ngCordova documentation)
+    document.addEventListener("deviceready", function () {
+    // listen for Online event
+    $rootScope.$on('$cordovaNetwork:online', function(event, networkState){
+        //TODO: add upload logic:
+        
+        /* SUDOCODE
+        
+        ADD FILE PLUGIN
+        Look in directory to check for JSON files
+        
+        FOR EACH JSON FILE:
+            Read the JSON file into a variable
+            Locate the FILENAME subobject
+            Iterate through each entry FILENAME subobject
+                Upload recording
+                    .success: delete recording
+                    
+        
+        
+        */
+        
+        if ($cordovaNetwork.getNetwork() == Connection.WIFI){
+            alert("wifi")
         }
+    })
+    // listen for Offline event
+    $rootScope.$on('$cordovaNetwork:offline', function(event, networkState){
+      var offlineState = networkState;
+    })
+  }, false);
+    
+    //Checks if data exists already, only loads if not (to prevent saving over old names)
+    if (JSON.stringify($localstorage.getObject('recording_names'))=="{}")
+        {
+        $http.get('js/qdata.json').success(function (data) {
+            $localstorage.setObject('question_json',data)
+            $localstorage.setObject('recording_names',data[0]['Q_Text'])
+            alert("data initialised")
+        })    
+        }
+        
 })
 
 
-.controller('recorderCtrl', function ($scope, $state, $cordovaMedia, $ionicLoading, $cordovaFile, SCB, $localstorage, $cordovaLocalNotification) {
+.controller('recorderCtrl', function ($scope, $state, $cordovaMedia, $ionicLoading, $cordovaFile, SCB, $localstorage, $cordovaLocalNotification, $rootScope, $cordovaNetwork, $http, $cordovaFileTransfer) {
 
   $scope.play = function(src) {
 		var fullpath = "/android_asset/www/"+src;
@@ -152,16 +191,179 @@ angular.module('app.controllers', [])
     
     $scope.delete = function ()
     {
-        $cordovaFile.removeFile(cordova.file.externalDataDirectory, $scope.aleph.q1)
+        alert(JSON.stringify($scope.aleph))
+        //$cordovaFile.removeFile(cordova.file.externalDataDirectory, $scope.aleph.q1)
     }
     
     $scope.deleteRecursive = function ()
     {
-        $scope.aleph.forEach(function(i){
-            alert($scope.aleph[i]);       
+        //for (i = 0; i < $scope.aleph.length; i++)
+        alert($scope.aleph["q1"]);
+    
+        for (var prop in $scope.aleph) {
+          alert(prop + " = " + $scope.aleph[prop]);
+        }
+
+    }
+    
+    $scope.checkConnection = function ()
+    {
+        var networkState = navigator.network.connection.type;
+
+        var states = {};
+        states[Connection.UNKNOWN]  = 'Unknown connection';
+        states[Connection.ETHERNET] = 'Ethernet connection';
+        states[Connection.WIFI]     = 'WiFi connection';
+        states[Connection.CELL_2G]  = 'Cell 2G connection';
+        states[Connection.CELL_3G]  = 'Cell 3G connection';
+        states[Connection.CELL_4G]  = 'Cell 4G connection';
+        states[Connection.NONE]     = 'No network connection';
+        
+        alert('Connection type: ' + states[networkState]);
+
+    }
+    
+    $scope.setArray = function ()
+    {
+        var array = ["Banana", "Orange", "Apple", "Mango"]
+        $localstorage.setArray('array', array)
+    }
+    
+    $scope.pushArray = function ()
+    {
+        var array = $localstorage.getArray('array')
+        array.push("Kiwi")
+        $localstorage.setArray('array',array)
+    }
+    
+    $scope.getArray = function ()
+    {    
+        var b = $localstorage.getArray('array')
+        alert(b)
+        alert(b[0])
+        alert(b[1])
+    }
+    
+    
+    $scope.getMeta = function ()
+    {    
+        var metas = $localstorage.getArray('metadata_filenames')
+
+        for (i=1; i<metas.length; i++)
+        {
+            alert(metas[i])
+            $cordovaFile.checkFile(cordova.file.externalDataDirectory, metas[i])
+              .then(function (success) {
+                alert("found")
+              }, function (error) {
+                alert("not found")
+              });
+        }
+    }
+    
+    $scope.upload_and_delete = function ()
+    {    
+        $scope.propername = null
+        $scope.data_holder = {} //for eventually expanding the data object
+        $scope.recording_names = {}
+        var metas = $localstorage.getArray('metadata_filenames')
+        
+        for (i=1; i<metas.length; i++)
+        {
+            //puts the metatdata json file's name into scope variable for access
+            $scope.propername = metas[i]
+            
+            //checks if file exists
+            $cordovaFile.checkFile(cordova.file.externalDataDirectory, $scope.propername)
+              .then(function (success) {
+                
+                //formats the filepath for $http
+                 var filepath = cordova.file.externalDataDirectory +""+ $scope.propername
+                 
+                 //uses $http.get to load directly into object that will hold individual recording names
+                 $http.get(filepath).success(function (data) {
+                     $scope.recording_names = data
+                     
+                     //loops through each name and uploads / deletes file
+                     for (var prop in $scope.recording_names)
+                         {
+                             /*
+                             
+                             UPLOAD
+                             CODE
+                             GOES
+                             HERE
+                             
+                             
+                             ionic plugin add org.apache.cordova.file-transfer
+                             
+                             inject $cordovaFileTransfer
+                             
+                             
+                             
+                             
+                             */
+                             
+                             // deletes file after upload
+                             $cordovaFile.removeFile(cordova.file.externalDataDirectory, $scope.recording_names[prop])
+                         }
+                     //upload JSON
+                     
+                     //Delete JSON
+                     $cordovaFile.removeFile(cordova.file.externalDataDirectory, $scope.propername)
+                 }).error( function (){alert("error reading")});
+            }, function (error) {alert("metadata file not found")});
+        }
+    }
+    
+    $scope.upload = function() {
+        var options = {
+            fileKey: "ionic",
+            fileName: "ionic.png",
+            chunkedMode: false,
+            mimeType: "image/png"
+        };
+        $cordovaFileTransfer.upload("ftp://cs/student/msc3/cs/2015/figarski/Desktop", "/android_asset/www/img/ionic.png", options).then(function(result) {
+            alert("SUCCESS: " + JSON.stringify(result.response));
+        }, function(err) {
+            alert("ERROR: " + JSON.stringify(err));
+        }, function (progress) {
+            // constant progress updates
         });
     }
     
+    
+    /*
+    $scope.betterMeta = function ()
+    {    
+        $scope.propername = null
+        $scope.data_holder = {} //for eventually expanding the data object
+        $scope.recording_names = {}
+        var metas = $localstorage.getArray('metadata_filenames')
+        
+        for (i=1; i<metas.length; i++)
+        {
+            $scope.propername = metas[i]
+            $cordovaFile.checkFile(cordova.file.externalDataDirectory, $scope.propername)
+              .then(function (success) {
+                 var filepath = cordova.file.externalDataDirectory +""+ $scope.propername
+                 $http.get(filepath).success(function (data) {
+                     $scope.recording_names = data
+                     
+                     alert("single extracted: "+$scope.recording_names.q1)
+                     
+                     for (var prop in $scope.recording_names)
+                         {
+                             alert(prop + " = " + $scope.recording_names[prop]);
+                         }
+                     
+                 }).error(function (){alert("error reading")});
+            }, function (error) {
+                alert("not found")
+            });
+        }
+    }
+    */
 })
 
 
@@ -335,6 +537,7 @@ angular.module('app.controllers', [])
     $scope.begin = function () {
 		//storing a flag that we are still recording (determines playback control)
 		SCB.setSCB(false);
+        $localstorage.setsid();
         
         //Generating an animated popover to prompt the user to return phoen to ear
         $ionicLoading.show({
@@ -343,14 +546,17 @@ angular.module('app.controllers', [])
             showBackdrop: false,
             maxWidth: 80,
             showDelay: 0,
+            duration: 1800
         });
         $timeout(function () {
-            $ionicLoading.hide();
             $state.go('alpha', { testvar: 1, mode: "Recording", filepath: null });
         }, 1850);
         
+            //$state.go('alpha', { testvar: 1, mode: "Re-Recording", filepath: null })
+        //TODO: convert to sliders, suck them into defined places in session_metadata
+        
         //Generates a timestamped session ID for use with all recording names		
-		$localstorage.setsid();
+		
     }
 
 })
@@ -442,6 +648,11 @@ angular.module('app.controllers', [])
 	SCB.setSCB(false);
   
     $scope.reviewandfinalise = function () {
+        //TODO: getObject session_metadata
+        //TODO: $scope.session_metadata.mood = $scope.data.numberSelection
+        //TODO: $scope.session_metadata.comments = $scope.data.comments
+        //TODO: setObject 'session_metadata', $scope.session_metadata
+        
         //alert($scope.data.numberSelection + " " + $scope.data.comments);
         $state.go('review');
     }
@@ -467,7 +678,7 @@ angular.module('app.controllers', [])
 
     //Sends user to specific question they had selected for rerecording
     $scope.reviewquestions = function (q) {
-        $state.go('alpha', { testvar: q, mode: "Reviewing", filepath: null })
+        $state.go('alpha', {testvar: q, mode: "Reviewing", filepath: null })
     }
 
     $scope.analytics = function () {
@@ -477,17 +688,24 @@ angular.module('app.controllers', [])
         $cordovaFile.writeFile(cordova.file.externalDataDirectory, json_filename, JSON.stringify($scope.rec_names), true)
         .then(
         function (success) {
+            //on succes, pushes the metadata file's name to localstorage
+            var temp = $localstorage.getArray('metadata_filenames')
+            temp.push(json_filename);
+            $localstorage.setArray('metadata_filenames', temp)
             //alert('SUCCESS3: ' + JSON.stringify(success));
         }, function (error) {
             alert('ERROR3: ' + JSON.stringify(error));
         });
+        
+        
+        SCB.setSCB(false)
         /*TODO: lots of heavy lifting:
 			>Save over 'recording_names' with 'question_json'[0]['Q_Text']
 			>listen for WIFI
 			>if WIFI, begin upload
 		*/
         
-        $state.go('analytics')
+        $state.go('mainMenu')
     }
 
 })
@@ -507,12 +725,21 @@ angular.module('app.controllers', [])
     //TODO: Note that we used to load in data from the JSON by HTTP, but this was a) overkill as the data shouldn't change and
     //b) was cumbersome to program for because HTTP.GET is async, forcing me to wrap up things in a success function
     
+    //TODO: hide buttons until recorded
+    
+    
+    /*
+        document.addEventListener("deviceready", function () {
+            alert("hello")
+  }, false);
+    */
+    
     
 	//initialisations. Pulling q# and mode out of the state
 	$scope.testvar = $stateParams.testvar;
     $scope.flavour_text = $stateParams.mode;
 	$scope.rec_names = $localstorage.getObject('recording_names')
-		var sid = $localstorage.getsid();
+    var sid = $localstorage.getsid();
     var unique_filename = sid+"_q"+$scope.testvar+".wav"
 	var rec_filepath = "Android/data/com.ionicframework.alpha540629/files/"+unique_filename
 	var recorder // media object of the recorder
@@ -526,8 +753,6 @@ angular.module('app.controllers', [])
 	var media; //media object for the question
 	var popover_sustain = 1800;
 	var number_of_questions;
-	
-    
     
 	//Pipes in boolean value of whether we're done with the first pass of the session
 	$scope.session_complete = SCB.getSCB();
@@ -597,6 +822,7 @@ angular.module('app.controllers', [])
 		
 		$timeout(function () {
         media.stop();
+        media.release();
 		recorder = new Media(rec_filepath);
 		recorder.startRecord();
         }, 4000);
@@ -640,49 +866,65 @@ angular.module('app.controllers', [])
 		}
     }
 
+    
+    //B
+    
     $scope.advance = function ()
     {
         if ($stateParams.mode == "Reviewing")
         {
-			if(media!=null)
+			if(media!=null){
 				media.stop();
+                media.release();
+            }
             $state.go('review')
         }
 		else if ($stateParams.mode == "Re-Recording" && $scope.session_complete == true)
         {
-			if(recorder!=null)
-				recorder.stopRecord();
+			if(recorder!=null){
+			recorder.stopRecord();
+            recorder.release();
+        }
             $state.go('review')
         }
         else if ($stateParams.testvar < number_of_questions)
         {
-            if(recorder!=null)
-				recorder.stopRecord();
-			$scope.rec_names["q"+$scope.testvar] = unique_filename//rec_filepath;
+            if(recorder!=null){
+			recorder.stopRecord();
+            recorder.release();
+        }
+			$scope.rec_names["q"+$scope.testvar] = unique_filename
 			$localstorage.setObject('recording_names',$scope.rec_names);
             $state.go('alpha', { testvar: $stateParams.testvar + 1, mode: "Recording", filepath: null })
         }
         else if ($stateParams.testvar == number_of_questions)
 		{
-			if(recorder!=null)
-				recorder.stopRecord();
-            $scope.rec_names["q"+$scope.testvar] = unique_filename//rec_filepath;
+			if(recorder!=null){
+			recorder.stopRecord();
+            recorder.release();
+        }
+            $scope.rec_names["q"+$scope.testvar] = unique_filename
 			$localstorage.setObject('recording_names',$scope.rec_names);
 			$state.go('non_audio');			
 		}
     }
 
     $scope.rerecord = function () {
-		if(recorder!=null)
+		if(recorder!=null){
 			recorder.stopRecord();
+            recorder.release();
+        }
         $state.go('alpha', { testvar: $stateParams.testvar, mode: "Re-Recording", filepath: null })
     }
 
     $scope.replay = function () {
-		if(recorder!=null)
-				recorder.stopRecord();
+		if(recorder!=null){
+			recorder.stopRecord();
+            recorder.release();
+        }
 		$scope.rec_names["q"+$scope.testvar] = unique_filename//rec_filepath;
 		$localstorage.setObject('recording_names',$scope.rec_names);
         $state.go('alpha', { testvar: $stateParams.testvar, mode: "Replaying", filepath: null })
     }
 })
+

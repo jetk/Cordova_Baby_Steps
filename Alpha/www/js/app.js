@@ -7,12 +7,25 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'app.services', 'app.directives'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $ionicPopup) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
-
-    
+      /*
+    if(window.Connection) {
+                if(navigator.connection.type == Connection.WIFI) {
+                    $ionicPopup.confirm({
+                        title: "Connected to WIFI",
+                        content: "Connected."
+                    })
+                    .then(function(result) {
+                        if(!result) {
+                            ionic.Platform.exitApp();
+                        }
+                    });
+                }
+            }
+      */
     if(window.cordova && window.cordova.plugins.Keyboard) {
       cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
     }
@@ -24,4 +37,6 @@ angular.module('app', ['ionic', 'ngCordova', 'app.controllers', 'app.routes', 'a
 
     }
   });
-})
+}).config(function($ionicConfigProvider) {
+  $ionicConfigProvider.views.maxCache(0);
+});

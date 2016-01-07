@@ -114,6 +114,14 @@ angular.module('app.services', [])
         get: function(key, defaultValue) {
             return $window.localStorage[key] || defaultValue;
         },
+        setArray: function(key, value) {
+            $window.localStorage[key] = value;
+        },
+        getArray: function(key, defaultValue) {
+            var array_as_string = $window.localStorage[key]
+            var array = array_as_string.split(",")
+            return array || defaultValue;
+        },
         setObject: function(key, value) {
             $window.localStorage[key] = JSON.stringify(value);
         },

@@ -7,9 +7,6 @@ angular.module('app.routes', [])
   // Set up the various states which the app can be in.
   // Each state's controller can be found in controllers.js
   $stateProvider
-    
-      
-        
     .state('login', {
       url: '/login',
       templateUrl: 'templates/login.html',
@@ -59,6 +56,7 @@ angular.module('app.routes', [])
  })
 
 .state('alpha', {
+    cache: false,
     url: '/alpha/{testvar:int}/:mode/:filepath',
     templateUrl: 'templates/alpha.html',
     controller: 'alphaCtrl'
@@ -70,6 +68,7 @@ angular.module('app.routes', [])
     controller: 'recorderCtrl'
 })
     ;
+    
 
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/login');

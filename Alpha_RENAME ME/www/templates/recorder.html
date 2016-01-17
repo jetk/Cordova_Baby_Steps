@@ -1,0 +1,48 @@
+<ion-view title="TESTBED">
+    <ion-content padding="'true'" style="background: url(img/background.jpg) no-repeat center;" class="has-header">
+        <button class="button button-stable button-outline button-block" ng-click="record()">@YF RECORD!</button>
+        <button class="button button-stable button-outline button-block" ng-click="stop()">@YF STOP!</button>
+        <button class="button button-stable button-outline button-block" ng-click="playback()">@YF PLAYBACK!</button>
+        
+		
+		
+		<label class="item item-input">
+		<span class="input-label">Filename</span>
+                <input type="text" ng-model="foo.filename">
+		</label>
+		<label class="item item-input">
+		<span class="input-label">Number</span>
+				<input type="tel" ng-model="foo.number">
+		</label>
+		
+        
+        
+		<button class="button button-block" ng-click="start()">start</button>
+		<button class="button button-block" ng-click="update()"=>update notification</button>
+		<button class="button button-block" ng-click="save()">add notification</button>
+        
+        <button class="button button-block" ng-click="delete()">Delete 1</button>
+		<button class="button button-block" ng-click="deleteRecursive()"=>Delete All</button>
+        
+        <button class="button button-block" ng-click="checkConnection()"=>Check Connection</button>
+        
+        <button class="button button-block button-outline" ng-click="setArray()"=>set</button>
+        <button class="button button-block button-outline" ng-click="pushArray()"=>push</button>
+        <button class="button button-block button-outline" ng-click="getArray()"=>get</button>
+      
+        <button class="button button-block" ng-click="getMeta()"=>getMeta</button>
+        <button class="button button-block" ng-click="upload_and_delete()"=>Test upload and delete</button>
+        
+        <button class="button button-block" ng-click="upload()"=>@YF upload</button>
+        <button class="button button-block" ng-click="upload_service()"=>upload</button>
+        
+        <button class="button button-block" ng-click="httpget()"=>http</button>
+        <button class="button button-block" ng-click="httpgetlongva()"=>test longva</button>
+        <button class="button button-block" ng-click="post()"=>post JSON</button>
+        
+        <button class="button button-block" ng-click="trigger()"=>TRIGGER</button>
+        <button class="button button-block" ng-click="activate_uploads()"=>FIRE_UPLOADS</button>
+        <button class="button button-block" ng-click="test_my_service()"=>Test My Service</button>
+        
+    </ion-content>
+</ion-view>
